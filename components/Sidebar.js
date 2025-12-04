@@ -1,7 +1,10 @@
-// components/Sidebar.js
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { signOut } from "firebase/auth";
+import { auth } from "../lib/firebase";
 
 export default function Sidebar({ active }) {
+  const router = useRouter();
   const baseLinkClasses =
     "flex items-center gap-2 px-3 py-2 rounded-lg text-[15px]";
   const inactiveClasses =
@@ -10,6 +13,15 @@ export default function Sidebar({ active }) {
 
   const linkClass = (key) =>
     `${baseLinkClasses} ${active === key ? activeClasses : inactiveClasses}`;
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push("/login");
+    } catch (err) {
+      console.error("Error signing out:", err);
+    }
+  };
 
   return (
     <aside className="w-64 bg-slate-900 text-slate-100 flex flex-col min-h-screen">
@@ -24,7 +36,7 @@ export default function Sidebar({ active }) {
         </Link>
 
         <Link href="/suppliers" className={linkClass("suppliers")}>
-          <span className="text-lg">👥</span>
+          <span className="text-lg">📇</span>
           <span>Suppliers</span>
         </Link>
 
@@ -39,9 +51,18 @@ export default function Sidebar({ active }) {
         </Link>
 
         <Link href="/transactions" className={linkClass("transactions")}>
-          <span className="text-lg">📑</span>
+          <span className="text-lg">📜</span>
           <span>View Transactions</span>
         </Link>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className={`${baseLinkClasses} mt-4 w-full text-left border border-slate-800 text-slate-200 hover:bg-slate-800 hover:text-white`}
+        >
+          <span className="text-lg">⎋</span>
+          <span>Log out</span>
+        </button>
       </nav>
     </aside>
   );
