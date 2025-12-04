@@ -5,12 +5,21 @@ import { onAuthStateChanged } from "firebase/auth";
 import { AccountProvider, useAccount } from "../lib/accountContext";
 import { auth } from "../lib/firebase";
 
-const authExcludedRoutes = ["/login"];
+const authExcludedRoutes = ["/login", "/marketing"];
+const marketingHosts = ["konnuko.com", "www.konnuko.com"];
 
 function AuthGate({ children }) {
   const router = useRouter();
   const { provisionAndSetAccount } = useAccount();
   const [checking, setChecking] = useState(true);
+
+  // Skip auth gating on marketing hosts
+  const isMarketingHost =
+    typeof window !== "undefined" &&
+    marketingHosts.includes(window.location.hostname.toLowerCase());
+  if (isMarketingHost || authExcludedRoutes.includes(router.pathname)) {
+    return children;
+  }
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -33,10 +42,6 @@ function AuthGate({ children }) {
     });
     return () => unsub();
   }, [provisionAndSetAccount, router]);
-
-  if (authExcludedRoutes.includes(router.pathname)) {
-    return children;
-  }
 
   if (checking) {
     return (
