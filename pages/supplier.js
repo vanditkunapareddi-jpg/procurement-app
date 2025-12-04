@@ -1,13 +1,16 @@
 // pages/supplier.js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { getDoc, getDocs, query, where } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import AppLayout from "../components/AppLayout";
+import { useAccount } from "../lib/accountContext";
+import { accountCollection, accountDoc } from "../lib/firestorePaths";
 
 export default function SupplierDetailPage() {
   const router = useRouter();
   const { id } = router.query;
+  const { accountId, ready } = useAccount();
 
   const [supplier, setSupplier] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,12 +22,19 @@ export default function SupplierDetailPage() {
   });
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !ready) return;
 
     const loadSupplier = async () => {
+      if (!accountId) {
+        setSupplier(null);
+        setStats({ totalOrders: 0, lastOrderDate: null, totalSpend: 0 });
+        setLoading(false);
+        setMessage("Set an account to load this supplier.");
+        return;
+      }
       try {
         setLoading(true);
-        const ref = doc(db, "suppliers", id);
+        const ref = accountDoc(db, accountId, "suppliers", id);
         const snap = await getDoc(ref);
 
         if (!snap.exists()) {
@@ -38,7 +48,10 @@ export default function SupplierDetailPage() {
 
         // Load transaction stats for this supplier
         const txSnap = await getDocs(
-          query(collection(db, "transactions"), where("supplierId", "==", id))
+          query(
+            accountCollection(db, accountId, "transactions"),
+            where("supplierId", "==", id)
+          )
         );
 
         let totalOrders = 0;
@@ -74,7 +87,7 @@ export default function SupplierDetailPage() {
     };
 
     loadSupplier();
-  }, [id]);
+  }, [id, accountId, ready]);
 
   const handleBack = () => {
     router.push("/suppliers");

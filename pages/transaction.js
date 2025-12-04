@@ -1,15 +1,18 @@
 // pages/transaction.js
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import AppLayout from "../components/AppLayout";
 import { getTrackingUrl } from "../lib/tracking";
+import { useAccount } from "../lib/accountContext";
+import { accountDoc } from "../lib/firestorePaths";
 
 export default function TransactionDetailPage() {
   const router = useRouter();
   const { id, supplierName: supplierNameQuery } = router.query;
+  const { accountId, ready } = useAccount();
 
   const [transaction, setTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -88,12 +91,18 @@ export default function TransactionDetailPage() {
   }, [showActionsMenu]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !ready) return;
 
     const loadTransaction = async () => {
+      if (!accountId) {
+        setTransaction(null);
+        setMessage("Set an account to load this transaction.");
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
-        const ref = doc(db, "transactions", id);
+        const ref = accountDoc(db, accountId, "transactions", id);
         const snap = await getDoc(ref);
 
         if (!snap.exists()) {
@@ -132,7 +141,7 @@ export default function TransactionDetailPage() {
     };
 
     loadTransaction();
-  }, [id]);
+  }, [id, accountId, ready]);
 
   const formatDate = (date) => {
     if (!date) return "--";
@@ -288,11 +297,15 @@ export default function TransactionDetailPage() {
 
   const handleSaveTracking = async () => {
     if (!id) return;
+    if (!accountId) {
+      setMessage("Set an account before updating tracking.");
+      return;
+    }
     try {
       setSavingTracking(true);
       const trimmed = trackingValue.trim();
       const carrier = trackingCarrier.trim();
-      const ref = doc(db, "transactions", id);
+      const ref = accountDoc(db, accountId, "transactions", id);
       await updateDoc(ref, {
         trackingNumber: trimmed || null,
         trackingCarrier: carrier || null,
@@ -333,9 +346,13 @@ export default function TransactionDetailPage() {
 
   const handleConfirmBalancePayment = async () => {
     if (!id) return;
+    if (!accountId) {
+      setMessage("Set an account before updating payment status.");
+      return;
+    }
     try {
       setSavingEdit(true);
-      const ref = doc(db, "transactions", id);
+      const ref = accountDoc(db, accountId, "transactions", id);
       const due = transaction?.amountDue || 0;
       const paid = transaction?.amountPaid || 0;
       await updateDoc(ref, {
@@ -375,6 +392,10 @@ export default function TransactionDetailPage() {
 
   const handleInvoiceUpload = async (file) => {
     if (!id || !file) return;
+    if (!accountId) {
+      setMessage("Set an account before uploading invoices.");
+      return;
+    }
     try {
       setUploadingInvoice(true);
       setMessage("");
@@ -404,7 +425,7 @@ export default function TransactionDetailPage() {
         invoicePath,
         invoiceFileName: file.name || "invoice",
       };
-      const refDoc = doc(db, "transactions", id);
+      const refDoc = accountDoc(db, accountId, "transactions", id);
       await updateDoc(refDoc, payload);
       setTransaction((prev) => (prev ? { ...prev, ...payload } : prev));
       setMessage("Invoice uploaded.");
@@ -419,9 +440,13 @@ export default function TransactionDetailPage() {
 
   const handleSaveEdit = async () => {
     if (!id) return;
+    if (!accountId) {
+      setMessage("Set an account before updating transactions.");
+      return;
+    }
     try {
       setSavingEdit(true);
-      const ref = doc(db, "transactions", id);
+      const ref = accountDoc(db, accountId, "transactions", id);
       const payload = {
         itemName: editForm.itemName.trim() || null,
         supplierName: editForm.supplierName.trim() || null,
@@ -467,9 +492,13 @@ export default function TransactionDetailPage() {
 
   const handleDeleteTransaction = async () => {
     if (!id) return;
+    if (!accountId) {
+      setMessage("Set an account before deleting transactions.");
+      return;
+    }
     try {
       setSavingEdit(true);
-      const ref = doc(db, "transactions", id);
+      const ref = accountDoc(db, accountId, "transactions", id);
       await deleteDoc(ref);
       router.push("/transactions");
     } catch (err) {

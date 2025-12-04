@@ -2,20 +2,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import {
-  collection,
   getDocs,
   query,
   orderBy,
   limit,
   updateDoc,
-  doc,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import AppLayout from "../components/AppLayout";
 import { getTrackingUrl } from "../lib/tracking";
+import { useAccount } from "../lib/accountContext";
+import { accountCollection, accountDoc } from "../lib/firestorePaths";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { accountId, ready } = useAccount();
 
   const [supplierCount, setSupplierCount] = useState(0);
   const [itemCount, setItemCount] = useState(0);
@@ -34,14 +35,24 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      if (!ready) return;
+      if (!accountId) {
+        setSupplierCount(0);
+        setItemCount(0);
+        setTransactionCount(0);
+        setTotalSpend(0);
+        setRecentOrders([]);
+        setErrorMsg("Set an account to load dashboard data.");
+        return;
+      }
+
       try {
         setErrorMsg("");
 
-        // Load counts
         const [supSnap, itemSnap, txSnap] = await Promise.all([
-          getDocs(collection(db, "suppliers")),
-          getDocs(collection(db, "items")),
-          getDocs(collection(db, "transactions")),
+          getDocs(accountCollection(db, accountId, "suppliers")),
+          getDocs(accountCollection(db, accountId, "items")),
+          getDocs(accountCollection(db, accountId, "transactions")),
         ]);
 
         setSupplierCount(supSnap.size);
@@ -49,16 +60,15 @@ export default function DashboardPage() {
         setTransactionCount(txSnap.size);
 
         let total = 0;
-        txSnap.forEach((doc) => {
-          const data = doc.data();
+        txSnap.forEach((d) => {
+          const data = d.data();
           const t = typeof data.totalCost === "number" ? data.totalCost : 0;
           total += t;
         });
         setTotalSpend(total);
 
-        // Recent incoming orders (latest 5)
         const qTx = query(
-          collection(db, "transactions"),
+          accountCollection(db, accountId, "transactions"),
           orderBy("orderDate", "desc"),
           limit(5)
         );
@@ -88,7 +98,7 @@ export default function DashboardPage() {
     };
 
     loadDashboardData();
-  }, []);
+  }, [accountId, ready]);
 
   const formatMoney = (amount) => {
     const n = !amount ? 0 : amount;
@@ -142,11 +152,20 @@ export default function DashboardPage() {
 
   const handleSaveTrackingFromModal = async () => {
     if (!trackingModal.txId) return;
+    if (!accountId) {
+      setErrorMsg("Set an account before saving tracking.");
+      return;
+    }
     try {
       setTrackingModal((prev) => ({ ...prev, saving: true }));
       const trimmedNum = trackingModal.number.trim();
       const trimmedCarrier = trackingModal.carrier.trim();
-      const ref = doc(db, "transactions", trackingModal.txId);
+      const ref = accountDoc(
+        db,
+        accountId,
+        "transactions",
+        trackingModal.txId
+      );
       await updateDoc(ref, {
         trackingNumber: trimmedNum || null,
         trackingCarrier: trimmedCarrier || null,

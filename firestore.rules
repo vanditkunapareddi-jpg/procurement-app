@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isMember(accountId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/accounts/$(accountId)/members/$(request.auth.uid));
+    }
+
+    function memberRole(accountId) {
+      return get(/databases/$(database)/documents/accounts/$(accountId)/members/$(request.auth.uid)).data.role;
+    }
+
+    function hasRole(accountId, roles) {
+      return isMember(accountId) && memberRole(accountId) in roles;
+    }
+
+    match /accounts/{accountId} {
+      // Allow any signed-in user to create a new account doc
+      allow create: if request.auth != null;
+
+      // Reads require membership
+      allow read: if isMember(accountId);
+
+      // Updates/deletes require owner/admin
+      allow update, delete: if hasRole(accountId, ['owner', 'admin']);
+
+      match /members/{userId} {
+        // User can create their own membership (for the account they’re creating)
+        allow create: if request.auth != null && request.auth.uid == userId;
+
+        // Read if you’re the user or already a member
+        allow read: if request.auth.uid == userId || isMember(accountId);
+
+        // Update/delete if owner/admin or self
+        allow update, delete: if request.auth.uid == userId || hasRole(accountId, ['owner', 'admin']);
+      }
+
+      match /suppliers/{docId} {
+        allow read: if isMember(accountId);
+        allow create, update, delete: if hasRole(accountId, ['owner', 'admin']);
+      }
+
+      match /itemFolders/{docId} {
+        allow read: if isMember(accountId);
+        allow create, update, delete: if hasRole(accountId, ['owner', 'admin']);
+      }
+
+      match /items/{docId} {
+        allow read: if isMember(accountId);
+        allow create, update, delete: if hasRole(accountId, ['owner', 'admin']);
+      }
+
+      match /transactions/{docId} {
+        allow read: if isMember(accountId);
+        allow create, update, delete: if hasRole(accountId, ['owner', 'admin']);
+      }
+    }
+  }
+}

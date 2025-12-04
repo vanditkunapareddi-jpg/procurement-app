@@ -1,15 +1,11 @@
 // pages/add-transaction.js
 import { useEffect, useRef, useState } from "react";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  doc,
-  getDoc,
-} from "firebase/firestore";
+import { getDocs, addDoc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import AppLayout from "../components/AppLayout";
+import { useAccount } from "../lib/accountContext";
+import { accountCollection, accountDoc } from "../lib/firestorePaths";
 
 function Dropdown({ value, onChange, options, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -70,6 +66,7 @@ function Dropdown({ value, onChange, options, placeholder }) {
 }
 
 export default function AddTransaction() {
+  const { accountId, ready } = useAccount();
   // Dropdown data
   const [suppliers, setSuppliers] = useState([]);
   const [items, setItems] = useState([]);
@@ -110,11 +107,19 @@ export default function AddTransaction() {
 
   useEffect(() => {
     const loadData = async () => {
+      if (!ready) return;
+      if (!accountId) {
+        setSuppliers([]);
+        setItems([]);
+        setFolders([]);
+        setMessage("Set an account to load dropdowns.");
+        return;
+      }
       try {
         const [supSnap, itemSnap, folderSnap] = await Promise.all([
-          getDocs(collection(db, "suppliers")),
-          getDocs(collection(db, "items")),
-          getDocs(collection(db, "itemFolders")),
+          getDocs(accountCollection(db, accountId, "suppliers")),
+          getDocs(accountCollection(db, accountId, "items")),
+          getDocs(accountCollection(db, accountId, "itemFolders")),
         ]);
 
         const supData = supSnap.docs.map((d) => ({
@@ -160,7 +165,7 @@ export default function AddTransaction() {
     };
 
     loadData();
-  }, []);
+  }, [accountId, ready]);
 
   const selectedSupplier =
     suppliers.find((s) => s.id === supplierId) || null;
@@ -221,6 +226,10 @@ export default function AddTransaction() {
       setMessage("Quantity and unit price are required.");
       return;
     }
+    if (!accountId) {
+      setMessage("Set an account before saving transactions.");
+      return;
+    }
 
     try {
       setSaving(true);
@@ -277,7 +286,7 @@ export default function AddTransaction() {
         createdAt: new Date(),
       };
 
-      await addDoc(collection(db, "transactions"), payload);
+      await addDoc(accountCollection(db, accountId, "transactions"), payload);
 
       setMessage("Transaction saved.");
 
@@ -317,6 +326,10 @@ export default function AddTransaction() {
       setMessage("Supplier name is required for quick add.");
       return;
     }
+    if (!accountId) {
+      setMessage("Set an account before adding suppliers.");
+      return;
+    }
 
     try {
       const payload = {
@@ -324,7 +337,10 @@ export default function AddTransaction() {
         email: qaSupplierEmail.trim(),
         createdAt: new Date(),
       };
-      const ref = await addDoc(collection(db, "suppliers"), payload);
+      const ref = await addDoc(
+        accountCollection(db, accountId, "suppliers"),
+        payload
+      );
 
       const newSupplier = { id: ref.id, ...payload };
       setSuppliers((prev) =>
@@ -367,6 +383,10 @@ export default function AddTransaction() {
       setMessage("Item name is required.");
       return;
     }
+    if (!accountId) {
+      setMessage("Set an account before adding items.");
+      return;
+    }
 
     try {
       let folderId = qaFolderId;
@@ -378,7 +398,10 @@ export default function AddTransaction() {
           name: qaNewFolderName.trim(),
           createdAt: new Date(),
         };
-        const fRef = await addDoc(collection(db, "itemFolders"), fPayload);
+        const fRef = await addDoc(
+          accountCollection(db, accountId, "itemFolders"),
+          fPayload
+        );
         folderId = fRef.id;
         folderName = fPayload.name;
 
@@ -387,7 +410,9 @@ export default function AddTransaction() {
           [...prev, newFolder].sort((a, b) => (a.name || "").localeCompare(b.name || ""))
         );
       } else {
-        const folderDoc = await getDoc(doc(db, "itemFolders", folderId));
+        const folderDoc = await getDoc(
+          accountDoc(db, accountId, "itemFolders", folderId)
+        );
         folderName = folderDoc.exists() ? folderDoc.data().name || "" : "";
       }
 
@@ -398,7 +423,7 @@ export default function AddTransaction() {
         createdAt: new Date(),
       };
 
-      const ref = await addDoc(collection(db, "items"), payload);
+      const ref = await addDoc(accountCollection(db, accountId, "items"), payload);
       const newItem = { id: ref.id, ...payload };
 
       setItems((prev) =>

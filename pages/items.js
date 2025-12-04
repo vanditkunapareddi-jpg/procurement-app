@@ -1,10 +1,13 @@
 // pages/items.js
 import { useEffect, useState, useRef } from "react";
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { getDocs, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import AppLayout from "../components/AppLayout";
+import { useAccount } from "../lib/accountContext";
+import { accountCollection, accountDoc } from "../lib/firestorePaths";
 
 export default function Items() {
+  const { accountId, ready } = useAccount();
   // Data
   const [folders, setFolders] = useState([]);
   const [allItems, setAllItems] = useState([]);
@@ -87,11 +90,19 @@ export default function Items() {
   // Load folders + items
   useEffect(() => {
     const loadData = async () => {
+      if (!ready) return;
+      if (!accountId) {
+        setFolders([]);
+        setAllItems([]);
+        setMessage("Set an account to load items.");
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const [folderSnap, itemSnap] = await Promise.all([
-          getDocs(collection(db, "itemFolders")),
-          getDocs(collection(db, "items")),
+          getDocs(accountCollection(db, accountId, "itemFolders")),
+          getDocs(accountCollection(db, accountId, "items")),
         ]);
 
         const folderData = folderSnap.docs.map((d) => ({
@@ -116,7 +127,7 @@ export default function Items() {
     };
 
     loadData();
-  }, []);
+  }, [accountId, ready]);
 
   // current active folder and its items
   const activeFolder = activeFolderId ? folders.find((f) => f.id === activeFolderId) : null;
@@ -137,8 +148,12 @@ export default function Items() {
 
   const handleDeleteFolder = async (folderId) => {
     if (!folderId) return;
+    if (!accountId) {
+      setMessage("Set an account before deleting folders.");
+      return;
+    }
     try {
-      await deleteDoc(doc(db, "itemFolders", folderId));
+      await deleteDoc(accountDoc(db, accountId, "itemFolders", folderId));
       setFolders((prev) => prev.filter((f) => f.id !== folderId));
       setAllItems((prev) => prev.filter((it) => it.folderId !== folderId));
       setMessage("Folder deleted.");
@@ -155,13 +170,20 @@ export default function Items() {
       setMessage("Folder name is required.");
       return;
     }
+    if (!accountId) {
+      setMessage("Set an account before creating folders.");
+      return;
+    }
     try {
       const payload = {
         name: newFolderName.trim(),
         parentId: newFolderParentId || null,
         createdAt: new Date(),
       };
-      const ref = await addDoc(collection(db, "itemFolders"), payload);
+      const ref = await addDoc(
+        accountCollection(db, accountId, "itemFolders"),
+        payload
+      );
       const newFolder = { id: ref.id, ...payload };
       setFolders((prev) =>
         [...prev, newFolder].sort((a, b) => (a.name || "").localeCompare(b.name || ""))
@@ -187,8 +209,12 @@ export default function Items() {
       setMessage("Folder name cannot be empty.");
       return;
     }
+    if (!accountId) {
+      setMessage("Set an account before renaming folders.");
+      return;
+    }
     try {
-      const ref = doc(db, "itemFolders", renameFolderId);
+      const ref = accountDoc(db, accountId, "itemFolders", renameFolderId);
       await updateDoc(ref, { name: renameFolderName.trim() });
 
       setFolders((prev) =>
@@ -241,6 +267,10 @@ export default function Items() {
   };
 
   const handleSaveItem = async () => {
+    if (!accountId) {
+      setMessage("Set an account before saving items.");
+      return;
+    }
     if (!activeFolderId) {
       setMessage("You must be inside a folder to add an item.");
       return;
@@ -276,12 +306,12 @@ export default function Items() {
 
     try {
       if (editingItemId) {
-        const ref = doc(db, "items", editingItemId);
+        const ref = accountDoc(db, accountId, "items", editingItemId);
         await updateDoc(ref, payload);
         setAllItems((prev) => prev.map((it) => (it.id === editingItemId ? { ...it, ...payload } : it)));
         setMessage("Item updated.");
       } else {
-        const ref = await addDoc(collection(db, "items"), {
+        const ref = await addDoc(accountCollection(db, accountId, "items"), {
           ...payload,
           createdAt: new Date(),
         });

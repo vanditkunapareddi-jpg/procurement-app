@@ -1,20 +1,16 @@
 // pages/transactions.js
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+import { getDocs, query, orderBy, updateDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import AppLayout from "../components/AppLayout";
 import { getTrackingUrl } from "../lib/tracking";
+import { useAccount } from "../lib/accountContext";
+import { accountCollection, accountDoc } from "../lib/firestorePaths";
 
 export default function TransactionsPage() {
   const router = useRouter();
+  const { accountId, ready } = useAccount();
 
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,12 +32,19 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     const loadTransactions = async () => {
+      if (!ready) return;
+      if (!accountId) {
+        setTransactions([]);
+        setLoading(false);
+        setMessage("Set an account to load transactions.");
+        return;
+      }
       try {
         setLoading(true);
 
         // Order by orderDate desc, then createdAt desc if available
         const qTrans = query(
-          collection(db, "transactions"),
+          accountCollection(db, accountId, "transactions"),
           orderBy("orderDate", "desc")
         );
         const snap = await getDocs(qTrans);
@@ -73,7 +76,7 @@ export default function TransactionsPage() {
     };
 
     loadTransactions();
-  }, []);
+  }, [accountId, ready]);
 
   // Prefill search from query param so clearing it shows all transactions again
   useEffect(() => {
@@ -203,11 +206,15 @@ export default function TransactionsPage() {
 
   const handleSaveTracking = async () => {
     if (!trackingEditId) return;
+    if (!accountId) {
+      setMessage("Set an account before updating tracking.");
+      return;
+    }
 
     try {
       const trimmed = trackingValue.trim();
       const carrier = trackingCarrier.trim();
-      const ref = doc(db, "transactions", trackingEditId);
+      const ref = accountDoc(db, accountId, "transactions", trackingEditId);
       await updateDoc(ref, {
         trackingNumber: trimmed || null,
         trackingCarrier: carrier || null,

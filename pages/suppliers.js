@@ -2,12 +2,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
+import { getDocs, addDoc, updateDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import AppLayout from "../components/AppLayout";
+import { useAccount } from "../lib/accountContext";
+import { accountCollection, accountDoc } from "../lib/firestorePaths";
 
 export default function Suppliers() {
   const router = useRouter();
+  const { accountId, ready } = useAccount();
 
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,9 +56,16 @@ export default function Suppliers() {
 
   useEffect(() => {
     const loadSuppliers = async () => {
+      if (!ready) return;
+      if (!accountId) {
+        setSuppliers([]);
+        setLoading(false);
+        setMessage("Set an account to load suppliers.");
+        return;
+      }
       try {
         setLoading(true);
-        const snap = await getDocs(collection(db, "suppliers"));
+        const snap = await getDocs(accountCollection(db, accountId, "suppliers"));
         const data = snap.docs.map((d) => ({
           id: d.id,
           ...d.data(),
@@ -72,7 +82,7 @@ export default function Suppliers() {
     };
 
     loadSuppliers();
-  }, []);
+  }, [accountId, ready]);
 
   const handleAddAltEmail = () => {
     setAltEmails((prev) => [...prev, ""]);
@@ -92,6 +102,10 @@ export default function Suppliers() {
 
     if (!name.trim()) {
       setMessage("Supplier name is required.");
+      return;
+    }
+    if (!accountId) {
+      setMessage("Set an account before saving.");
       return;
     }
 
@@ -116,14 +130,14 @@ export default function Suppliers() {
       setSaving(true);
 
       if (editingId) {
-        const ref = doc(db, "suppliers", editingId);
+        const ref = accountDoc(db, accountId, "suppliers", editingId);
         await updateDoc(ref, payload);
         setSuppliers((prev) =>
           prev.map((s) => (s.id === editingId ? { ...s, ...payload } : s))
         );
         setMessage("Supplier updated.");
       } else {
-        const ref = await addDoc(collection(db, "suppliers"), {
+        const ref = await addDoc(accountCollection(db, accountId, "suppliers"), {
           ...payload,
           createdAt: new Date(),
         });
