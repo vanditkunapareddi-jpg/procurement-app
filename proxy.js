@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const marketingHosts = ["konnuko.com", "www.konnuko.com"];
 const bypassPaths = ["/_next", "/api", "/favicon", "/robots", "/sitemap"];
 
-export function middleware(req) {
+export default function proxy(req) {
   const host = req.headers.get("host")?.toLowerCase();
   const url = req.nextUrl.clone();
 
