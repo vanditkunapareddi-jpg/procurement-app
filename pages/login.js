@@ -27,13 +27,11 @@ export default function LoginPage() {
   const handleLogin = async () => {
     setMessage("");
     setLoading(true);
+    const provider = new GoogleAuthProvider();
     try {
-      const provider = new GoogleAuthProvider();
-      const { user } = await signInWithPopup(auth, provider);
-      await provisionAndSetAccount(user.uid, {
-        name: user.displayName || "My Workspace",
-      });
-      router.replace("/");
+      // Switch to popup for local testing; change back to redirect for production if desired.
+      await signInWithPopup(auth, provider);
+      // Redirect flow will continue after reload; no need to set loading false here.
     } catch (err) {
       console.error("Login error:", err);
       setMessage(err?.message || "Login failed. Please try again.");

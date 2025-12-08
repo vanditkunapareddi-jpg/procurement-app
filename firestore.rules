@@ -25,8 +25,9 @@ service cloud.firestore {
       // Reads require membership
       allow read: if isMember(accountId);
 
-      // Updates/deletes require owner/admin
-      allow update, delete: if hasRole(accountId, ['owner', 'admin']);
+      // Updates/deletes require owner/admin or the account ownerUid
+      allow update, delete: if hasRole(accountId, ['owner', 'admin']) ||
+        (resource.data.ownerUid == request.auth.uid);
 
       match /members/{userId} {
         // User can create their own membership (for the account they’re creating)
