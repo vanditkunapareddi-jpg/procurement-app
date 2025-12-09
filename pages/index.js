@@ -7,8 +7,9 @@ import {
   orderBy,
   limit,
   updateDoc,
+  setDoc,
 } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { db, auth } from "../lib/firebase";
 import AppLayout from "../components/AppLayout";
 import { getTrackingUrl } from "../lib/tracking";
 import { useAccount } from "../lib/accountContext";
@@ -48,6 +49,22 @@ export default function DashboardPage() {
 
       try {
         setErrorMsg("");
+
+        const uid = auth.currentUser?.uid;
+        if (!uid) {
+          setErrorMsg("Not authenticated. Please sign in again.");
+          return;
+        }
+
+        // Ensure membership exists for this account/user before reads.
+        await setDoc(
+          accountDoc(db, accountId, "members", uid),
+          {
+            role: "owner",
+            joinedAt: new Date(),
+          },
+          { merge: true }
+        );
 
         const [supSnap, itemSnap, txSnap] = await Promise.all([
           getDocs(accountCollection(db, accountId, "suppliers")),
