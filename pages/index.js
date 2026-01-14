@@ -26,6 +26,8 @@ export default function DashboardPage() {
   const [recentOrders, setRecentOrders] = useState([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [copyingId, setCopyingId] = useState(null);
+  const [greeting, setGreeting] = useState({ salutation: "Hello", name: "" });
+  const [todayText, setTodayText] = useState("");
   const [trackingModal, setTrackingModal] = useState({
     show: false,
     txId: null,
@@ -217,16 +219,46 @@ export default function DashboardPage() {
     }
   };
 
+  // Derive greeting + first name + today text for the header
+  useEffect(() => {
+    const user = auth.currentUser;
+    const fullName = user?.displayName || "";
+    const email = user?.email || "";
+    const firstName =
+      fullName.split(" ").filter(Boolean)[0] ||
+      (email ? email.split("@")[0] : "");
+
+    const hour = new Date().getHours();
+    const salutation =
+      hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
+    setGreeting({ salutation, name: firstName || "there" });
+
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+    setTodayText(formatter.format(now));
+  }, []);
+
   return (
     <AppLayout active="dashboard">
       <main className="mx-auto max-w-5xl px-6 py-8 space-y-8">
         {/* Page header */}
         <section className="flex items-baseline justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Overview</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Quick snapshot of your suppliers, items, and purchase history.
+            <p className="text-xs font-semibold text-slate-500">
+              {todayText || new Date().toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
             </p>
+            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900 mt-1">
+              {greeting.salutation}, {greeting.name}
+            </h1>
           </div>
         </section>
 
@@ -328,7 +360,31 @@ export default function DashboardPage() {
             className="w-full text-left rounded-3xl bg-gradient-to-br from-indigo-500 to-blue-500 text-white px-5 py-5 shadow-lg flex items-start gap-3 transition hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-200 cursor-pointer"
           >
             <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20 text-lg font-semibold">
-              S
+              <svg
+                aria-hidden="true"
+                focusable="false"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 512 512"
+                fill="none"
+              >
+                <circle cx="176" cy="176" r="72" stroke="currentColor" strokeWidth="24" fill="none" />
+                <path
+                  d="M80 384c0-53 43-96 96-96h0c53 0 96 43 96 96v64H80v-64z"
+                  stroke="currentColor"
+                  strokeWidth="24"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+                <circle cx="352" cy="144" r="64" stroke="currentColor" strokeWidth="24" fill="none" />
+                <path
+                  d="M272 320c12-36 46-64 80-64h0c45 0 88 39 88 96v32h-88"
+                  stroke="currentColor"
+                  strokeWidth="24"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+              </svg>
             </div>
             <div>
               <p className="text-sm font-semibold opacity-90">Suppliers</p>
@@ -341,7 +397,27 @@ export default function DashboardPage() {
             className="w-full text-left rounded-3xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white px-5 py-5 shadow-lg flex items-start gap-3 transition hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-emerald-200 cursor-pointer"
           >
             <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20 text-lg font-semibold">
-              I
+              <svg
+                aria-hidden="true"
+                focusable="false"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 512 512"
+                fill="none"
+              >
+                <path
+                  d="M64 96v304c0 26 22 48 48 48h336"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="24"
+                  strokeLinecap="round"
+                />
+                <rect x="160" y="112" width="112" height="112" fill="none" stroke="currentColor" strokeWidth="24" />
+                <rect x="320" y="112" width="112" height="80" fill="none" stroke="currentColor" strokeWidth="24" />
+                <rect x="160" y="256" width="272" height="112" fill="none" stroke="currentColor" strokeWidth="24" />
+                <circle cx="200" cy="448" r="40" stroke="currentColor" strokeWidth="24" fill="none" />
+                <circle cx="336" cy="448" r="40" stroke="currentColor" strokeWidth="24" fill="none" />
+              </svg>
             </div>
             <div>
               <p className="text-sm font-semibold opacity-90">Items</p>
@@ -354,7 +430,28 @@ export default function DashboardPage() {
             className="w-full text-left rounded-3xl bg-gradient-to-br from-orange-400 via-amber-400 to-rose-400 text-white px-5 py-5 shadow-lg flex items-start gap-3 transition hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-amber-200 cursor-pointer"
           >
             <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20 text-lg font-semibold">
-              T
+              <svg
+                aria-hidden="true"
+                focusable="false"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 512 512"
+                fill="none"
+              >
+                <rect
+                  x="80"
+                  y="128"
+                  width="352"
+                  height="256"
+                  rx="48"
+                  ry="48"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="24"
+                />
+                <rect x="80" y="192" width="352" height="32" fill="currentColor" />
+                <circle cx="160" cy="304" r="32" fill="none" stroke="currentColor" strokeWidth="24" />
+              </svg>
             </div>
             <div>
               <p className="text-sm font-semibold opacity-90">Transactions</p>

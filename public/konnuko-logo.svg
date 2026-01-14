@@ -1,0 +1,22 @@
+<svg width="610" height="165" viewBox="70 175 610 165" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="konnukoSun" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#FFD400" />
+      <stop offset="100%" stop-color="#FF7A00" />
+    </radialGradient>
+  </defs>
+  <g>
+    <circle cx="98" cy="208" r="28" fill="url(#konnukoSun)" />
+    <path d="M70 236 H126 A28 28 0 0 1 70 236 Z" fill="#F82848" />
+    <rect x="70" y="266" width="56" height="56" fill="#0888F8" />
+  </g>
+  <text
+    x="170"
+    y="300"
+    fill="#FFFFFF"
+    font-size="102"
+    font-weight="700"
+    font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif"
+    letter-spacing="0"
+  >konnuko</text>
+</svg>

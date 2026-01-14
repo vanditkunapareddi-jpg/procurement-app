@@ -2,12 +2,13 @@ export default function MarketingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-950 to-black text-white">
       <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-indigo-500/30 border border-indigo-400/50 flex items-center justify-center text-lg font-bold">
-            K
-          </div>
+        <div className="flex items-center gap-3">
+          <img
+            src="/konnuko-logo.svg"
+            alt="Konnuko logo"
+            className="h-12 w-auto"
+          />
           <div>
-            <p className="text-lg font-semibold">Konnuko</p>
             <p className="text-xs text-slate-300">Supplier & purchase tracking</p>
           </div>
         </div>

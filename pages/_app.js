@@ -12,16 +12,18 @@ function AuthGate({ children }) {
   const router = useRouter();
   const { provisionAndSetAccount } = useAccount();
   const [checking, setChecking] = useState(true);
-
-  // Skip auth gating on marketing hosts
   const isMarketingHost =
     typeof window !== "undefined" &&
     marketingHosts.includes(window.location.hostname.toLowerCase());
-  if (isMarketingHost || authExcludedRoutes.includes(router.pathname)) {
-    return children;
-  }
+  const bypassAuth =
+    isMarketingHost || authExcludedRoutes.includes(router.pathname);
 
   useEffect(() => {
+    if (bypassAuth) {
+      setChecking(false);
+      return undefined;
+    }
+
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setChecking(false);
@@ -41,7 +43,7 @@ function AuthGate({ children }) {
       }
     });
     return () => unsub();
-  }, [provisionAndSetAccount, router]);
+  }, [bypassAuth, provisionAndSetAccount, router]);
 
   if (checking) {
     return (
