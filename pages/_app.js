@@ -5,7 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { AccountProvider, useAccount } from "../lib/accountContext";
 import { auth } from "../lib/firebase";
 
-const authExcludedRoutes = ["/login", "/marketing"];
+const authExcludedRoutes = ["/login", "/marketing", "/invite"];
 const marketingHosts = ["konnuko.com", "www.konnuko.com"];
 
 function AuthGate({ children }) {

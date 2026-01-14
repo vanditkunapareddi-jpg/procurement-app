@@ -58,16 +58,6 @@ export default function DashboardPage() {
           return;
         }
 
-        // Ensure membership exists for this account/user before reads.
-        await setDoc(
-          accountDoc(db, accountId, "members", uid),
-          {
-            role: "owner",
-            joinedAt: new Date(),
-          },
-          { merge: true }
-        );
-
         const [supSnap, itemSnap, txSnap] = await Promise.all([
           getDocs(accountCollection(db, accountId, "suppliers")),
           getDocs(accountCollection(db, accountId, "items")),

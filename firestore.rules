@@ -19,8 +19,8 @@ service cloud.firestore {
     }
 
     match /accounts/{accountId} {
-      // Allow any signed-in user to create a new account doc
-      allow create: if request.auth != null;
+      // Account docs are created/managed by trusted server functions.
+      allow create: if false;
 
       // Reads require membership
       allow read: if isMember(accountId);
@@ -30,14 +30,17 @@ service cloud.firestore {
         (resource.data.ownerUid == request.auth.uid);
 
       match /members/{userId} {
-        // User can create their own membership (for the account they’re creating)
-        allow create: if request.auth != null && request.auth.uid == userId;
+        // Memberships are managed by trusted server functions.
+        allow create, update, delete: if false;
 
-        // Read if you’re the user or already a member
+        // Read if you're the user or already a member
         allow read: if request.auth.uid == userId || isMember(accountId);
+      }
 
-        // Update/delete if owner/admin or self
-        allow update, delete: if request.auth.uid == userId || hasRole(accountId, ['owner', 'admin']);
+      match /invites/{inviteId} {
+        // Invite records are managed by trusted server functions.
+        allow create, update, delete: if false;
+        allow read: if hasRole(accountId, ['owner', 'admin']);
       }
 
       match /suppliers/{docId} {
