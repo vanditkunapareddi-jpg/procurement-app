@@ -254,11 +254,17 @@ export default function LoginPage() {
           Support
         </a>
         <span>|</span>
-        <a href="/privacy" className="hover:text-slate-700 cursor-pointer">
+        <a
+          href="https://konnuko.com/privacy"
+          className="hover:text-slate-700 cursor-pointer"
+        >
           Privacy
         </a>
         <span>|</span>
-        <a href="/terms" className="hover:text-slate-700 cursor-pointer">
+        <a
+          href="https://konnuko.com/terms"
+          className="hover:text-slate-700 cursor-pointer"
+        >
           Terms
         </a>
       </footer>
