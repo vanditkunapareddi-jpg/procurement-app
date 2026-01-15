@@ -43,7 +43,9 @@ export default function LoginPage() {
       await signInWithPopup(auth, provider);
     } catch (err) {
       console.error("Login error:", err);
-      setMessage(err?.message || "Login failed. Please try again.");
+      if (err?.code !== "auth/popup-closed-by-user") {
+        setMessage(err?.message || "Login failed. Please try again.");
+      }
       setLoading(false);
     }
   };
@@ -236,13 +238,29 @@ export default function LoginPage() {
       </main>
 
       <footer className="pb-10 text-center text-sm text-slate-500 space-x-3">
-        <span>Konnuko.com</span>
+        <a
+          href="https://konnuko.com"
+          className="hover:text-slate-700 cursor-pointer"
+          rel="noreferrer"
+          target="_blank"
+        >
+          Konnuko.com
+        </a>
         <span>|</span>
-        <span>Support</span>
+        <a
+          href="mailto:support@konnuko.com"
+          className="hover:text-slate-700 cursor-pointer"
+        >
+          Support
+        </a>
         <span>|</span>
-        <span>Privacy</span>
+        <a href="/privacy" className="hover:text-slate-700 cursor-pointer">
+          Privacy
+        </a>
         <span>|</span>
-        <span>Terms</span>
+        <a href="/terms" className="hover:text-slate-700 cursor-pointer">
+          Terms
+        </a>
       </footer>
     </div>
   );
