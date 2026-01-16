@@ -1,34 +1,11 @@
+import MarketingHeader from "../components/MarketingHeader";
+
 export default function MarketingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-950 to-black text-white">
-      <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img
-            src="/konnuko-logo.svg"
-            alt="Konnuko logo"
-            className="h-12 w-auto"
-          />
-          <div>
-            <p className="text-xs text-slate-300">Supplier & purchase tracking</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <a
-            href="https://app.konnuko.com/login"
-            className="inline-flex items-center px-4 py-2 rounded-lg border border-white/30 text-sm font-semibold hover:bg-white/10 transition"
-          >
-            Log in
-          </a>
-          <a
-            href="https://app.konnuko.com/login"
-            className="inline-flex items-center px-4 py-2 rounded-lg bg-amber-400 text-slate-900 text-sm font-semibold hover:bg-amber-300 transition shadow-lg shadow-amber-500/30"
-          >
-            Launch app
-          </a>
-        </div>
-      </header>
+      <MarketingHeader />
 
-      <main className="max-w-6xl mx-auto px-6 pb-16">
+      <main className="max-w-6xl mx-auto px-6 pb-16 pt-8">
         <section className="py-8 md:py-12 grid md:grid-cols-2 gap-10 items-center">
           <div className="space-y-6">
             <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-200 text-xs font-semibold border border-indigo-400/40">
@@ -146,3 +123,4 @@ export default function MarketingPage() {
     </div>
   );
 }
+

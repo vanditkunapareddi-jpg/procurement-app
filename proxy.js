@@ -17,7 +17,9 @@ export default function proxy(req) {
 
   if (host && marketingHosts.includes(host)) {
     const pathname = url.pathname;
-    const shouldBypass = bypassPaths.some((prefix) => pathname.startsWith(prefix));
+    const isStaticAsset = pathname.includes(".");
+    const shouldBypass =
+      isStaticAsset || bypassPaths.some((prefix) => pathname.startsWith(prefix));
 
     if (!shouldBypass && pathname !== "/marketing") {
       url.pathname = "/marketing";
