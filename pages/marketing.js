@@ -121,36 +121,10 @@ export default function MarketingPage() {
         </section>
       </main>
 
-      <footer className="mt-6 bg-[#6B0F2E] text-white">
+      <footer className="mt-6 bg-slate-950 text-white">
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap items-center gap-6 text-sm">
             <span>© 2026 Konnuko, Inc.</span>
-            <span className="inline-flex items-center gap-2 text-white/80">
-              <span className="inline-block h-7 w-7 rounded-full border border-white/30 text-center leading-7">
-                🌐
-              </span>
-              English
-            </span>
-            <div className="flex items-center gap-2">
-              {[
-                { label: "X", href: "https://x.com" },
-                { label: "in", href: "https://linkedin.com" },
-                { label: "IG", href: "https://instagram.com" },
-                { label: "f", href: "https://facebook.com" },
-                { label: "yt", href: "https://youtube.com" },
-              ].map((icon) => (
-                <a
-                  key={icon.label}
-                  href={icon.href}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-xs font-semibold uppercase tracking-wide hover:bg-black/60 transition"
-                  aria-label={icon.label}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {icon.label}
-                </a>
-              ))}
-            </div>
           </div>
           <div className="flex items-center gap-6 text-sm">
             <div className="flex items-center gap-3">
