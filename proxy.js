@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 
 const marketingHosts = ["konnuko.com", "www.konnuko.com"];
-const bypassPaths = ["/_next", "/api", "/favicon", "/robots", "/sitemap"];
+const bypassPaths = [
+  "/_next",
+  "/api",
+  "/favicon",
+  "/robots",
+  "/sitemap",
+  "/privacy",
+  "/terms",
+];
 
 export default function proxy(req) {
   const host = req.headers.get("host")?.toLowerCase();
