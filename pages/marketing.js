@@ -14,6 +14,10 @@ export default function MarketingPage() {
             <h1 className="text-3xl md:text-5xl font-bold leading-tight">
               Track suppliers, items, and purchase orders in one secure workspace.
             </h1>
+            <p className="text-slate-100 text-base md:text-lg leading-relaxed">
+              Konnuko is a supplier and purchase tracking platform that helps teams
+              manage vendors, items, and purchase orders in one place.
+            </p>
             <p className="text-slate-200 text-base md:text-lg leading-relaxed">
               Konnuko centralizes your vendors, SKUs, and transactions so you never lose track of inventory or spend. Multi-tenant by design, ready for your team out of the box.
             </p>
