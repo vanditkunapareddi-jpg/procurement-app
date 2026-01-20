@@ -86,7 +86,7 @@ export default function Sidebar({ active, open = true, onClose }) {
         onClick={handleClose}
       />
       <aside
-        className={`fixed lg:static inset-y-0 left-0 w-56 bg-slate-900 text-slate-100 flex flex-col min-h-screen max-h-screen overflow-y-auto shadow-2xl lg:shadow-none transform transition-transform duration-200 lg:transform-none z-50 lg:z-auto ${
+        className={`fixed inset-y-0 left-0 w-56 bg-slate-900 text-slate-100 flex flex-col min-h-screen max-h-screen overflow-y-auto shadow-2xl lg:sticky lg:top-0 lg:h-screen lg:shadow-none transform transition-transform duration-200 lg:transform-none z-50 lg:z-auto ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
